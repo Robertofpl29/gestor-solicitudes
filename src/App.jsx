@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { solicitudesIniciales } from "./data/solicitudes";
+import Navbar from "./components/Navbar";
 import SolicitudList from "./components/SolicitudList";
 import SolicitudForm from "./components/SolicitudForm";
 import Filtro from "./components/Filtro";
@@ -10,7 +12,7 @@ function App() {
   const [filtro, setFiltro] = useState("Todas");
   const [cargando, setCargando] = useState(true);
 
-  // useEffect 1: simula la carga de datos (luego se cambia por Axios en la sesión 11)
+  // useEffect 1: simula la carga de datos
   useEffect(() => {
     const timer = setTimeout(() => {
       setSolicitudes(solicitudesIniciales);
@@ -35,12 +37,52 @@ function App() {
       : solicitudes.filter((s) => s.estado === filtro);
 
   return (
-    <div className="app">
-      <h1>Gestor de Solicitudes</h1>
-      <SolicitudForm onAgregar={agregarSolicitud} />
-      <Filtro filtro={filtro} onCambiar={setFiltro} />
-      {cargando ? <p>Cargando...</p> : <SolicitudList solicitudes={filtradas} />}
-    </div>
+    <Router>
+      <div className="app">
+        <Navbar />
+        <main style={{ padding: "2rem" }}>
+          <Routes>
+            {/* Vista Principal / Inicio */}
+            <Route
+              path="/"
+              element={
+                <div>
+                  <h1>Gestor de Solicitudes Académicas</h1>
+                  <p>Bienvenido al sistema SPA con React Router.</p>
+                </div>
+              }
+            />
+
+            {/* Vista de Listado y Filtrado (Actividad 1 y 2 unificadas) */}
+            <Route
+              path="/solicitudes"
+              element={
+                <div>
+                  <h1>Listado de Solicitudes</h1>
+                  <Filtro filtro={filtro} onCambiar={setFiltro} />
+                  {cargando ? (
+                    <p>Cargando...</p>
+                  ) : (
+                    <SolicitudList solicitudes={filtradas} />
+                  )}
+                </div>
+              }
+            />
+
+            {/* Vista para Registrar Nueva Solicitud */}
+            <Route
+              path="/nueva"
+              element={
+                <div>
+                  <h1>Registrar Nueva Solicitud</h1>
+                  <SolicitudForm onAgregar={agregarSolicitud} />
+                </div>
+              }
+            />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
