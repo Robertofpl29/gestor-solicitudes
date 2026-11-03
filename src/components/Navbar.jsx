@@ -1,14 +1,47 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from "react-router-dom";
+
+import { useSolicitudes } from "../context/useSolicitudes";
 
 export default function Navbar() {
+  
+  const { usuario, cerrarSesion } = useSolicitudes();
+
   return (
-    <nav style={{ padding: '1rem', background: '#242424', color: '#fff', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-      <h3 style={{ margin: 0 }}>Gestor de Solicitudes</h3>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <Link to="/" style={{ color: '#646cff', textDecoration: 'none' }}>Inicio</Link>
-        <Link to="/solicitudes" style={{ color: '#646cff', textDecoration: 'none' }}>Ver Solicitudes</Link>
-        <Link to="/nueva" style={{ color: '#646cff', textDecoration: 'none' }}>Nueva Solicitud</Link>
+    <header className="navbar">
+      <div className="navbar__marca">
+        <Link className="navbar__titulo" to="/">
+          Portal de Solicitudes Académicas
+        </Link>
       </div>
-    </nav>
+
+      
+      <nav className="navbar__menu">
+        <NavLink to="/" end>
+          Inicio
+        </NavLink>
+        <NavLink to="/solicitudes">Solicitudes</NavLink>
+        <NavLink to="/nueva">Nueva Solicitud</NavLink>
+      </nav>
+
+      
+      <div className="navbar__sesion">
+        {usuario ? (
+          <>
+            <div className="navbar__usuario">
+              <strong>{usuario.nombre}</strong>
+              <span>{usuario.rol}</span>
+            </div>
+            <button type="button" className="btn btn-linea-oscura" onClick={cerrarSesion}>
+              Cerrar sesión
+            </button>
+          </>
+        ) : (
+          <Link className="btn btn-linea-oscura" to="/login">
+            Iniciar sesión
+          </Link>
+        )}
+      </div>
+    </header>
   );
 }
+

@@ -1,32 +1,624 @@
-.app {
-  max-width: 600px;
-  margin: 2rem auto;
-  font-family: sans-serif;
-  padding: 0 1rem;
+/* ============================================================================
+ * PA3 · ACTIVIDAD 3 — ESTADO GLOBAL CON CONTEXT API
+ * ----------------------------------------------------------------------------
+ * ► ESTE ARCHIVO ES LA PARTE 2 DE LA ACTIVIDAD 3   (Integrante 2)
+ *   Consumo e integración en componentes (frontend / vistas)
+ * ----------------------------------------------------------------------------
+ * Archivo: src/App.css
+ *
+ * ACTIVIDADES DE LA PA3 EN QUE PARTICIPA ESTE ARCHIVO:
+ *   Actividad 1 (SPA, componentes y Hooks)   → los estilos de la interfaz
+ *   Actividad 2 (React Router)               → no aplica
+ *   Actividad 3 PARTE 2 (este archivo)       → los estilos del panel de evidencia del estado global
+ *   Actividad 4 (Redux)                      → PENDIENTE · src/store/
+ *
+ * ► Mapa completo de archivos por actividad: MAPA_CODIGO_PA3.md
+ *
+ * ----------------------------------------------------------------------------
+ * Diseño sencillo con la PALETA ORIGINAL del proyecto (la que se usaba antes
+ * de la Actividad 3):
+ *     #242424  → barra de navegación y textos sobre fondo oscuro
+ *     #646cff  → color de acento (enlaces y botones primarios)
+ *     #ccc     → bordes de las tarjetas
+ *     #fff     → fondo de las tarjetas y del formulario
+ * ==========================================================================*/
+
+:root {
+  --oscuro: #242424;
+  --acento: #646cff;
+  --borde: #ccc;
+  --borde-suave: #e5e5e5;
+  --texto: #1d1d1d;
+  --texto-suave: #6b7280;
+  --peligro: #d93025;
+  --aprobada: #0f9d58;
+  --revision: #b06b00;
 }
 
-.form {
+* {
+  box-sizing: border-box;
+}
+
+/* ── Estructura ────────────────────────────────────────────────────────── */
+.app {
+  min-height: 100vh;
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.contenido {
+  flex: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.7rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+.subtitulo {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
-.form input {
-  flex: 1;
-  padding: 0.4rem;
+/* ── Barra de navegación ───────────────────────────────────────────────── */
+.navbar {
+  background: var(--oscuro);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1px solid #000;
 }
 
+.navbar__marca {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.navbar__titulo {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Los 3 enlaces del menú quedan centrados en la barra. */
+.navbar__menu {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.navbar__menu a {
+  color: #646cff;
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+
+.navbar__menu a:hover {
+  background: #ffffff14;
+  color: #8b8bff;
+}
+
+.navbar__menu a.activo {
+  background: #ffffff1f;
+  color: #fff;
+  font-weight: 600;
+}
+
+.navbar__sesion {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.navbar__usuario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+}
+
+.navbar__usuario strong {
+  font-size: 0.88rem;
+}
+
+.navbar__usuario span {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: #9aa0aa;
+  text-transform: uppercase;
+}
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.3;
+  transition: filter 0.12s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.08);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-acento {
+  background: var(--acento);
+  color: #fff;
+}
+
+.btn-linea {
+  background: #fff;
+  color: var(--acento);
+  border-color: var(--acento);
+}
+
+.btn-linea-oscura {
+  background: transparent;
+  color: #fff;
+  border-color: #ffffff66;
+}
+
+.btn-neutra {
+  background: #fff;
+  color: var(--texto);
+  border-color: var(--borde);
+}
+
+.btn-peligro {
+  background: var(--peligro);
+  color: #fff;
+}
+
+/* ── Encabezado de página ─────────────────────────────────────────────── */
+.pagina__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 1rem;
+}
+
+.pagina__conteo {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.pagina__acciones {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+.filtro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
+  padding: 0.85rem 0;
+  margin-bottom: 0.75rem;
+}
+
+.filtro__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filtro__campo--ancho {
+  flex: 1;
+  min-width: 220px;
+}
+
+.filtro label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+/* ── Controles de formulario ───────────────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--texto);
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+  border-color: var(--acento);
+}
+
+input[readonly] {
+  background: #f6f7f9;
+  color: var(--acento);
+  font-weight: 700;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: #f6f7f9;
+  color: var(--texto-suave);
+}
+
+/* ── Formulario ────────────────────────────────────────────────────────── */
+.form {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form__fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form__campo {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form__etiqueta {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--texto);
+}
+
+.form__requerido {
+  color: var(--peligro);
+}
+
+.form__ayuda {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.form__contador {
+  font-size: 0.78rem;
+  color: var(--peligro);
+  text-align: right;
+}
+
+.form__pie {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--borde-suave);
+  padding-top: 1rem;
+}
+
+.form__nota {
+  flex: 1 1 260px;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  text-align: left;
+}
+
+/* ── Tarjeta de solicitud ──────────────────────────────────────────────── */
 .lista {
   list-style: none;
   padding: 0;
-}
-
-.item {
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  border: 1px solid #ccc;
+  gap: 0.6rem;
+}
+
+.tarjeta-solicitud {
+  background: #fff;
+  border: 1px solid var(--borde);
   border-radius: 6px;
-  padding: 0.7rem;
-  margin: 0.5rem 0;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.tarjeta-solicitud__campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.6rem 1rem;
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.dato__clave {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.dato__valor {
+  font-size: 0.95rem;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+.dato__valor--codigo {
+  font-family: Consolas, "Courier New", monospace;
+  font-weight: 700;
+  color: var(--acento);
+}
+
+.tarjeta-solicitud__detalle {
+  border-top: 1px solid var(--borde-suave);
+  padding-top: 0.6rem;
+}
+
+.tarjeta-solicitud__detalle p {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+}
+
+.tarjeta-solicitud__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.tarjeta-solicitud__acciones .btn {
+  margin-left: auto;
+}
+
+.tarjeta-solicitud__acciones .btn + .btn {
+  margin-left: 0;
+}
+
+.grupo-estado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.grupo-estado label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.grupo-estado select {
+  min-width: 165px;
+}
+
+/* ── Etiquetas de estado ───────────────────────────────────────────────── */
+.estado {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.estado--pendiente {
+  background: #fff4e5;
+  color: #a35b00;
+  border-color: #f0d3a8;
+}
+
+.estado--revision {
+  background: #ececec;
+  color: #3f3f46;
+  border-color: #d5d5d8;
+}
+
+.estado--aprobada {
+  background: #e6f6ec;
+  color: #0d6b3c;
+  border-color: #b6e0c6;
+}
+
+.estado--rechazada {
+  background: #fde8e6;
+  color: #a02218;
+  border-color: #f3c4c0;
+}
+
+/* ── Panel de estado global (evidencia de la Actividad 3) ───────────────── */
+.panel-estado {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel-estado h4 {
+  margin: 0 0 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.panel-estado__contadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+}
+
+.contador {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.contador__clave {
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+.contador__valor {
+  font-size: 1.35rem;
+  color: var(--texto);
+}
+
+/* ── Pie de página ─────────────────────────────────────────────────────── */
+.pie {
+  border-top: 1px solid var(--borde);
+  background: var(--oscuro);
+  color: #b8bcc4;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ── Alertas y estados vacíos ──────────────────────────────────────────── */
+.alerta {
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  margin: 0 0 1rem;
+  border: 1px solid transparent;
+}
+
+.alerta--error {
+  background: #fde8e6;
+  border-color: #f3c4c0;
+  color: #a02218;
+}
+
+.alerta--ok {
+  background: #e6f6ec;
+  border-color: #b6e0c6;
+  color: #0d6b3c;
+}
+
+/* Aviso informativo en tono neutro (sin azul celeste). */
+.alerta--info {
+  background: #f4f4f5;
+  border-color: #dcdce0;
+  color: #3f3f46;
+}
+
+.vacio {
+  border: 1px dashed var(--borde);
+  border-radius: 8px;
+  background: #fff;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+/* ── Detalle ───────────────────────────────────────────────────────────── */
+.detalle {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.detalle__fila {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0.4rem 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.detalle__fila:last-child {
+  border-bottom: none;
+}
+
+.detalle__clave {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  padding-top: 0.2rem;
+}
+
+.detalle__valor {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .navbar {
+    flex-wrap: wrap;
+  }
+  .navbar__marca,
+  .navbar__sesion {
+    flex: 1 1 100%;
+  }
+  .navbar__menu {
+    order: 3;
+    width: 100%;
+  }
+  .detalle__fila {
+    grid-template-columns: 1fr;
+  }
 }
