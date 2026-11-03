@@ -1,88 +1,41 @@
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { solicitudesIniciales } from "./data/solicitudes";
+import { Route, Routes } from "react-router-dom";
+
+import { SolicitudesProvider } from "./context/SolicitudesContext";
 import Navbar from "./components/Navbar";
-import SolicitudList from "./components/SolicitudList";
-import SolicitudForm from "./components/SolicitudForm";
-import Filtro from "./components/Filtro";
+
+import Inicio from "./pages/Inicio";
+import ListadoSolicitudes from "./pages/ListadoSolicitudes";
+// import NuevaSolicitud from "./pages/NuevaSolicitud";
+// import DetalleSolicitud from "./pages/DetalleSolicitud";
+// import Login from "./pages/Login";
+// import NoEncontrada from "./pages/NoEncontrada";
+
 import "./App.css";
 
 function App() {
-  const [solicitudes, setSolicitudes] = useState([]);
-  const [filtro, setFiltro] = useState("Todas");
-  const [cargando, setCargando] = useState(true);
-
-  // useEffect 1: simula la carga de datos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSolicitudes(solicitudesIniciales);
-      setCargando(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // useEffect 2: reacciona a cambios de estado
-  useEffect(() => {
-    document.title = `Solicitudes (${solicitudes.length})`;
-  }, [solicitudes]);
-
-  const agregarSolicitud = ({ titulo, prioridad }) => {
-    const nueva = { id: Date.now(), titulo, prioridad, estado: "Pendiente" };
-    setSolicitudes([...solicitudes, nueva]);
-  };
-
-  const filtradas =
-    filtro === "Todas"
-      ? solicitudes
-      : solicitudes.filter((s) => s.estado === filtro);
-
   return (
-    <Router>
+    
+    <SolicitudesProvider>
       <div className="app">
         <Navbar />
-        <main style={{ padding: "2rem" }}>
+
+        <main className="contenido">
           <Routes>
-            {/* Vista Principal / Inicio */}
-            <Route
-              path="/"
-              element={
-                <div>
-                  <h1>Gestor de Solicitudes Académicas</h1>
-                  <p>Bienvenido al sistema SPA con React Router.</p>
-                </div>
-              }
-            />
-
-            {/* Vista de Listado y Filtrado (Actividad 1 y 2 unificadas) */}
-            <Route
-              path="/solicitudes"
-              element={
-                <div>
-                  <h1>Listado de Solicitudes</h1>
-                  <Filtro filtro={filtro} onCambiar={setFiltro} />
-                  {cargando ? (
-                    <p>Cargando...</p>
-                  ) : (
-                    <SolicitudList solicitudes={filtradas} />
-                  )}
-                </div>
-              }
-            />
-
-            {/* Vista para Registrar Nueva Solicitud */}
-            <Route
-              path="/nueva"
-              element={
-                <div>
-                  <h1>Registrar Nueva Solicitud</h1>
-                  <SolicitudForm onAgregar={agregarSolicitud} />
-                </div>
-              }
-            />
+           
+            <Route path="/" element={<Inicio />} />
+            <Route path="/solicitudes" element={<ListadoSolicitudes />} />
+            {/* <Route path="/solicitudes/:id" element={<DetalleSolicitud />} /> */}
+            {/* <Route path="/nueva" element={<NuevaSolicitud />} /> */}
+            {/* <Route path="/login" element={<Login />} /> */}
+            {/* <Route path="*" element={<NoEncontrada />} /> */}
           </Routes>
         </main>
+
+        <footer className="pie">
+          © 2026 Sistema de Gestión de Solicitudes Académicas
+        </footer>
       </div>
-    </Router>
+    </SolicitudesProvider>
   );
 }
 
