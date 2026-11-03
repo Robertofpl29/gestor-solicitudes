@@ -176,7 +176,7 @@ La aplicación estará disponible en `http://localhost:5173`.
 
 ## 10. Video de exposición
 
-📹 Video público de YouTube: [PEGAR AQUÍ EL ENLACE](https://youtube.com)
+📹 Video público de YouTube: [PEGAR AQUÍ EL ENLACE](https://www.youtube.com/watch?v=KnkF5wLbQyM)
 
 ---
 
