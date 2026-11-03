@@ -364,6 +364,14 @@ textarea:disabled {
   gap: 0.6rem;
 }
 
+/* Vista de tarjetas controlada por Redux */
+.lista--tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
 .tarjeta-solicitud {
   background: #fff;
   border: 1px solid var(--borde);
