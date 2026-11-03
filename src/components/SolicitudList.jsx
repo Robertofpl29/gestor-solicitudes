@@ -1,9 +1,14 @@
+
+import { useSelector } from "react-redux";
 import { useSolicitudes } from "../context/useSolicitudes";
 import SolicitudItem from "./SolicitudItem";
 
 export default function SolicitudList() {
-  
-  const { solicitudesFiltradas, cargando, hayFiltrosActivos } = useSolicitudes();
+  const { solicitudesFiltradas, cargando, hayFiltrosActivos } =
+    useSolicitudes();
+
+  // Leer la preferencia de visualización desde Redux
+  const vista = useSelector((state) => state.preferencias.vista);
 
   if (cargando) {
     return <p className="vacio">Cargando solicitudes…</p>;
@@ -20,9 +25,12 @@ export default function SolicitudList() {
   }
 
   return (
-    <ul className="lista">
+    <ul className={vista === "tarjetas" ? "lista lista--tarjetas" : "lista"}>
       {solicitudesFiltradas.map((solicitud) => (
-        <SolicitudItem key={solicitud.id ?? solicitud.codigoRadicado} solicitud={solicitud} />
+        <SolicitudItem
+          key={solicitud.id ?? solicitud.codigoRadicado}
+          solicitud={solicitud}
+        />
       ))}
     </ul>
   );
