@@ -1,4 +1,3 @@
-
 import { useDispatch, useSelector } from "react-redux";
 import {
   cambiarVista,
@@ -15,30 +14,43 @@ function PreferenciasRedux() {
   const dispatch = useDispatch();
 
   return (
-    <section className="preferencias-redux">
+    <section className="preferencias">
       <h2>Preferencias de visualización (Redux)</h2>
 
-      <div>
+      <div className="preferencias__grupo">
         <p>Tipo de visualización: <strong>{vista}</strong></p>
 
-        <button onClick={() => dispatch(cambiarVista("lista"))}>
-          Vista Lista
-        </button>
+        <div className="preferencias__botones">
+          <button
+            className={`btn ${vista === "lista" ? "btn-acento" : "btn-neutra"}`}
+            onClick={() => dispatch(cambiarVista("lista"))}
+          >
+            Vista Lista
+          </button>
 
-        <button onClick={() => dispatch(cambiarVista("tarjetas"))}>
-          Vista Tarjetas
-        </button>
+          <button
+            className={`btn ${vista === "tarjetas" ? "btn-acento" : "btn-neutra"}`}
+            onClick={() => dispatch(cambiarVista("tarjetas"))}
+          >
+            Vista Tarjetas
+          </button>
+        </div>
       </div>
 
-      <div>
+      <div className="preferencias__grupo">
         <p>
           Estadísticas:{" "}
           <strong>{mostrarEstadisticas ? "Visibles" : "Ocultas"}</strong>
         </p>
 
-        <button onClick={() => dispatch(alternarEstadisticas())}>
-          {mostrarEstadisticas ? "Ocultar estadísticas" : "Mostrar estadísticas"}
-        </button>
+        <div className="preferencias__botones">
+          <button
+            className="btn btn-linea"
+            onClick={() => dispatch(alternarEstadisticas())}
+          >
+            {mostrarEstadisticas ? "Ocultar estadísticas" : "Mostrar estadísticas"}
+          </button>
+        </div>
       </div>
     </section>
   );
