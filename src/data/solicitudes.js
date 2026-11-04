@@ -37,6 +37,18 @@ export const estudiantesLocales = [
   },
 ];
 
+// Usuarios del seed de la PA2 para la autenticación simulada del modo local.
+export const usuariosLocales = [
+  { nombre: "Administrador ISIL", correo: "admin@isil.pe", rol: "administrador" },
+  { nombre: "Personal Académico", correo: "personal@isil.pe", rol: "personal" },
+  { nombre: "Valeria Restrepo", correo: "valeria@isil.pe", rol: "estudiante" },
+  { nombre: "Carlos Mendoza", correo: "carlos@isil.pe", rol: "estudiante" },
+  { nombre: "Andrea Morales", correo: "andrea@isil.pe", rol: "estudiante" },
+  { nombre: "Mateo Salazar", correo: "mateo@isil.pe", rol: "estudiante" },
+];
+
+// Contraseña de demostración (la misma del seed de la PA2).
+export const PASSWORD_DEMO = "123";
 
 export function buscarEstudianteLocal(usuario) {
   if (!usuario) return null;

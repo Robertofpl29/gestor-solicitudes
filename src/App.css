@@ -117,7 +117,8 @@ p {
   color: #8b8bff;
 }
 
-.navbar__menu a.activo {
+/* NavLink de React Router agrega la clase "active" al enlace de la ruta actual. */
+.navbar__menu a.active {
   background: #ffffff1f;
   color: #fff;
   font-weight: 600;
@@ -308,10 +309,14 @@ textarea:disabled {
 }
 
 .form__campo {
-  flex: 1 1 240px;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+/* El ancho mínimo de 240px solo aplica a los campos que van lado a lado. */
+.form__fila .form__campo {
+  flex: 1 1 240px;
 }
 
 .form__etiqueta {

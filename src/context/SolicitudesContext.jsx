@@ -14,14 +14,18 @@ import {
 import {
   buscarEstudianteLocal,
   estudiantesLocales,
+  PASSWORD_DEMO,
   solicitudesLocales,
+  usuariosLocales,
 } from "../data/solicitudes";
 
 export const SolicitudesContext = createContext(null);
 
 export function SolicitudesProvider({ children }) {
   
-  const [solicitudes, setSolicitudes] = useState([]);
+  // Cada modo guarda sus propias solicitudes: los datos locales y los de MongoDB no se mezclan.
+  const [solicitudesDemo, setSolicitudesDemo] = useState(solicitudesLocales);
+  const [solicitudesApi, setSolicitudesApi] = useState([]);
   const [estudiantes, setEstudiantes] = useState(estudiantesLocales);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -38,6 +42,13 @@ export function SolicitudesProvider({ children }) {
     }
   });
   const [miEstudiante, setMiEstudiante] = useState(null);
+  // Las vistas reciben la lista del modo activo.
+  const solicitudes = modoDatos === "local" ? solicitudesDemo : solicitudesApi;
+  // Último correlativo asignado en esta sesión. Empieza en el mayor de los datos
+  // iniciales (SOL-2024-007 → 7) y solo aumenta: un código eliminado no se reutiliza.
+  const [ultimoCorrelativo, setUltimoCorrelativo] = useState(() =>
+    Math.max(...solicitudesLocales.map((s) => Number(s.codigoRadicado.split("-").pop()))),
+  );
 
   const rol = usuario?.rol ?? null;
   const esAdministrador = rol === "administrador";
@@ -46,11 +57,12 @@ export function SolicitudesProvider({ children }) {
 
   const permisos = useMemo(
     () => ({
+      // Sin sesión (modo local) solo se permite consultar.
       verTodasLasSolicitudes: esPersonalInterno || demoSinSesion,
-      cambiarEstado: esPersonalInterno || demoSinSesion,
-      editar: esPersonalInterno || demoSinSesion,
-      eliminar: esAdministrador || demoSinSesion,
-      crear: Boolean(usuario) || demoSinSesion,
+      cambiarEstado: esPersonalInterno,
+      editar: esPersonalInterno,
+      eliminar: esAdministrador,
+      crear: Boolean(usuario),
     }),
     [esPersonalInterno, esAdministrador, demoSinSesion, usuario],
   );
@@ -64,11 +76,8 @@ export function SolicitudesProvider({ children }) {
       
         const soloMias = rolActivo === "estudiante";
         const propio = buscarEstudianteLocal({ correo: correoActivo });
-        const lista = soloMias
-          ? solicitudesLocales.filter((s) => s.estudiante?.codigo === propio?.codigo)
-          : solicitudesLocales;
 
-        setSolicitudes(lista);
+        // La lista demo no se reinicia: conserva lo registrado en modo local.
         setEstudiantes(estudiantesLocales);
         setMiEstudiante(soloMias ? propio : null);
         setModoDatos("local");
@@ -83,7 +92,7 @@ export function SolicitudesProvider({ children }) {
           : await listarSolicitudes({ token: tokenActivo || undefined });
 
         const lista = Array.isArray(datos) ? datos : [];
-        setSolicitudes(lista);
+        setSolicitudesApi(lista);
         setModoDatos("api");
 
         
@@ -91,14 +100,18 @@ export function SolicitudesProvider({ children }) {
           setMiEstudiante(lista[0]?.estudiante ?? null);
         }
       } catch (fallo) {
-        
+        // 401 sin token: la API está disponible, pero falta iniciar sesión.
+        if (fallo.status === 401 && !tokenActivo) {
+          setSolicitudesApi([]);
+          setModoDatos("api");
+          setError("Inicie sesión para consultar las solicitudes de la API.");
+          return;
+        }
+
+        // Cualquier otro error: se vuelve al modo local con la lista demo intacta.
         const soloMias = rolActivo === "estudiante";
         const propio = buscarEstudianteLocal({ correo: correoActivo });
-        const lista = soloMias
-          ? solicitudesLocales.filter((s) => s.estudiante?.codigo === propio?.codigo)
-          : solicitudesLocales;
 
-        setSolicitudes(lista);
         setEstudiantes(estudiantesLocales);
         setMiEstudiante(soloMias ? propio : null);
         setModoDatos("local");
@@ -153,7 +166,7 @@ export function SolicitudesProvider({ children }) {
       if (modoDatos === "api" && token) {
         try {
           const creada = await crearSolicitud(limpio, token);
-          setSolicitudes((previas) => [creada, ...previas]);
+          setSolicitudesApi((previas) => [creada, ...previas]);
           return { ok: true, solicitud: creada };
         } catch (fallo) {
           return { ok: false, mensaje: fallo.message };
@@ -164,24 +177,30 @@ export function SolicitudesProvider({ children }) {
       const estudiante =
         estudiantes.find((e) => e.codigo === limpio.estudianteCodigo) ??
         (miEstudiante?.codigo === limpio.estudianteCodigo ? miEstudiante : null);
-      const correlativo = String(
-        solicitudesLocales.length + solicitudes.length + 1,
-      ).padStart(3, "0");
+      // Siguiente número del contador en memoria (SOL-2024-007 → SOL-2026-008).
+      const siguienteNumero = ultimoCorrelativo + 1;
+      setUltimoCorrelativo(siguienteNumero);
+      const correlativo = String(siguienteNumero).padStart(3, "0");
       const nueva = {
         id: `local-${Date.now()}`,
         codigoRadicado: `SOL-${new Date().getFullYear()}-${correlativo}`,
         tipoTramite: limpio.tipoTramite,
         descripcionDetalle: limpio.descripcionDetalle || "Trámite en gestión académica",
-        fechaRadicacion: new Date().toLocaleDateString("es-PE"),
+        // Mismo formato que los datos locales, por ejemplo "14 Feb 2024".
+        fechaRadicacion: new Date().toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }),
         estado: "Pendiente",
         justificacion: limpio.justificacion,
         estudiante,
         createdAt: new Date().toISOString(),
       };
-      setSolicitudes((previas) => [nueva, ...previas]);
+      setSolicitudesDemo((previas) => [nueva, ...previas]);
       return { ok: true, solicitud: nueva };
     },
-    [modoDatos, token, estudiantes, solicitudes.length, miEstudiante],
+    [modoDatos, token, estudiantes, ultimoCorrelativo, miEstudiante],
   );
 
   
@@ -194,7 +213,7 @@ export function SolicitudesProvider({ children }) {
       if (modoDatos === "api" && token) {
         try {
           const actualizada = await actualizarEstadoSolicitud(id, estado, token);
-          setSolicitudes((previas) =>
+          setSolicitudesApi((previas) =>
             previas.map((s) =>
               s.id === id || s.codigoRadicado === id ? { ...s, ...actualizada } : s,
             ),
@@ -205,7 +224,7 @@ export function SolicitudesProvider({ children }) {
         }
       }
 
-      setSolicitudes((previas) =>
+      setSolicitudesDemo((previas) =>
         previas.map((s) => (s.id === id || s.codigoRadicado === id ? { ...s, estado } : s)),
       );
       return { ok: true };
@@ -224,14 +243,16 @@ export function SolicitudesProvider({ children }) {
         if (!resultado.ok) return resultado;
       }
 
-      setSolicitudes((previas) =>
+      // La edición se guarda en la lista del modo activo.
+      const actualizarLista = modoDatos === "local" ? setSolicitudesDemo : setSolicitudesApi;
+      actualizarLista((previas) =>
         previas.map((s) =>
           s.id === id || s.codigoRadicado === id ? { ...s, ...cambios } : s,
         ),
       );
       return { ok: true };
     },
-    [solicitudes, cambiarEstadoSolicitud],
+    [solicitudes, modoDatos, cambiarEstadoSolicitud],
   );
 
   
@@ -240,7 +261,7 @@ export function SolicitudesProvider({ children }) {
       if (modoDatos === "api" && token) {
         try {
           await eliminarSolicitudApi(id, token);
-          setSolicitudes((previas) =>
+          setSolicitudesApi((previas) =>
             previas.filter((s) => s.id !== id && s.codigoRadicado !== id),
           );
           return { ok: true };
@@ -249,7 +270,7 @@ export function SolicitudesProvider({ children }) {
         }
       }
 
-      setSolicitudes((previas) => previas.filter((s) => s.id !== id && s.codigoRadicado !== id));
+      setSolicitudesDemo((previas) => previas.filter((s) => s.id !== id && s.codigoRadicado !== id));
       return { ok: true };
     },
     [modoDatos, token],
@@ -272,6 +293,20 @@ export function SolicitudesProvider({ children }) {
   
   const iniciarSesion = useCallback(
     async (correo, password) => {
+      // Modo local: autenticación simulada con los usuarios del seed (sin token ni localStorage).
+      if (modoDatos === "local") {
+        const encontrado = usuariosLocales.find((u) => u.correo === correo.toLowerCase());
+        if (!encontrado || password !== PASSWORD_DEMO) {
+          return { ok: false, mensaje: "Correo o contraseña incorrectos." };
+        }
+        // No se recargan los datos: las solicitudes registradas se conservan en memoria.
+        setUsuario(encontrado);
+        setMiEstudiante(
+          encontrado.rol === "estudiante" ? buscarEstudianteLocal({ correo: encontrado.correo }) : null,
+        );
+        return { ok: true, usuario: encontrado };
+      }
+
       try {
         const respuesta = await iniciarSesionApi(correo, password);
         localStorage.setItem(TOKEN_KEY, respuesta.token);
@@ -289,13 +324,13 @@ export function SolicitudesProvider({ children }) {
         return { ok: false, mensaje: fallo.message };
       }
     },
-    [cargarSolicitudes, cargarEstudiantes],
+    [modoDatos, cargarSolicitudes, cargarEstudiantes],
   );
 
   
   const restablecerDatosLocales = useCallback(() => {
+    // Vuelve al modo local sin reiniciar la lista demo.
     setModoDatos("local");
-    setSolicitudes(solicitudesLocales);
     setEstudiantes(estudiantesLocales);
   }, []);
 
@@ -305,11 +340,15 @@ export function SolicitudesProvider({ children }) {
     setToken("");
     setUsuario(null);
     setMiEstudiante(null);
-    restablecerDatosLocales();
-  }, [restablecerDatosLocales]);
+    // Los datos de MongoDB no quedan en memoria; la lista demo se conserva.
+    setSolicitudesApi([]);
+    if (modoDatos !== "local") restablecerDatosLocales();
+  }, [modoDatos, restablecerDatosLocales]);
 
  
   const recargar = useCallback(async () => {
+    // En modo local los datos ya están en memoria: recargarlos borraría lo registrado.
+    if (modoDatos === "local") return;
     await cargarSolicitudes(modoDatos, token, rol, usuario?.correo ?? "");
   }, [cargarSolicitudes, modoDatos, token, rol, usuario]);
 
@@ -356,11 +395,18 @@ export function SolicitudesProvider({ children }) {
     };
   }, [cargarSolicitudes, cargarEstudiantes]);
 
-  
+  // En modo local el estado guarda todas las solicitudes; un estudiante solo ve las suyas.
+  const solicitudesVisibles = useMemo(() => {
+    if (modoDatos === "local" && rol === "estudiante") {
+      return solicitudes.filter((s) => s.estudiante?.codigo === miEstudiante?.codigo);
+    }
+    return solicitudes;
+  }, [solicitudes, modoDatos, rol, miEstudiante]);
+
   const solicitudesFiltradas = useMemo(() => {
     const texto = busqueda.trim().toLowerCase();
 
-    return solicitudes.filter((s) => {
+    return solicitudesVisibles.filter((s) => {
       const coincideEstado = filtroEstado === "Todos" || s.estado === filtroEstado;
       if (!coincideEstado) return false;
       if (!texto) return true;
@@ -376,18 +422,18 @@ export function SolicitudesProvider({ children }) {
         .filter(Boolean)
         .some((campo) => String(campo).toLowerCase().includes(texto));
     });
-  }, [solicitudes, filtroEstado, busqueda]);
+  }, [solicitudesVisibles, filtroEstado, busqueda]);
 
   const metricas = useMemo(() => {
     const base = {
-      total: solicitudes.length,
+      total: solicitudesVisibles.length,
       pendientes: 0,
       enRevision: 0,
       aprobadas: 0,
       rechazadas: 0,
     };
 
-    solicitudes.forEach((s) => {
+    solicitudesVisibles.forEach((s) => {
       if (s.estado === "Pendiente") base.pendientes += 1;
       else if (s.estado === "En Revisión") base.enRevision += 1;
       else if (s.estado === "Aprobada") base.aprobadas += 1;
@@ -395,15 +441,15 @@ export function SolicitudesProvider({ children }) {
     });
 
     return base;
-  }, [solicitudes]);
+  }, [solicitudesVisibles]);
 
   const hayFiltrosActivos = filtroEstado !== "Todos" || busqueda.trim() !== "";
 
   
   const valorContext = useMemo(
     () => ({
-      // Estado
-      solicitudes,
+      // Estado (las vistas reciben solo las solicitudes que el usuario puede ver)
+      solicitudes: solicitudesVisibles,
       solicitudesFiltradas,
       estudiantes,
       metricas,
@@ -433,7 +479,7 @@ export function SolicitudesProvider({ children }) {
       alternarModoDatos,
     }),
     [
-      solicitudes,
+      solicitudesVisibles,
       solicitudesFiltradas,
       estudiantes,
       metricas,
