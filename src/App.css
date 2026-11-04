@@ -619,6 +619,70 @@ textarea:disabled {
   overflow-wrap: anywhere;
 }
 
+/* ── Página de inicio ──────────────────────────────────────────────────── */
+.pagina-inicio {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.inicio-encabezado h1 {
+  margin-bottom: 0.4rem;
+}
+
+.inicio-encabezado p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+/* El panel de estadísticas ya tiene margen propio; aquí lo da el gap. */
+.pagina-inicio .panel-estado {
+  margin-bottom: 0;
+}
+
+/* ── Preferencias de visualización (Redux) ─────────────────────────────── */
+.preferencias {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.preferencias h2 {
+  margin: 0;
+}
+
+.preferencias p {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.preferencias p strong {
+  color: var(--texto);
+}
+
+.preferencias__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--borde-suave);
+}
+
+.preferencias__grupo:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.preferencias__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 @media (max-width: 760px) {
   .navbar {
     flex-wrap: wrap;
